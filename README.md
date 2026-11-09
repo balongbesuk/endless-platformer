@@ -1,3 +1,6 @@
+<img width="974" height="557" alt="image" src="https://github.com/user-attachments/assets/805eab77-8994-4f31-a6bf-486003e590ee" />
+
+
 # Offline Adventure — Endless Pixel Platformer
 
 [![PWA Ready](https://img.shields.io/badge/PWA-Ready-22c55e?logo=pwa)](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps)
