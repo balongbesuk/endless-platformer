@@ -668,6 +668,7 @@
       display: flex;
       gap: 12px;
       pointer-events: auto;
+      touch-action: none;
     }
 
     .touch-btn {
@@ -1546,6 +1547,7 @@
         this.jumpPressed = false;
         this.jumpReleased = false;
 
+        this.dirPointerId = null;
         this.activePointers = new Map();
         this.onPauseToggle = null;
         this.onMuteToggle = null;
@@ -1563,6 +1565,7 @@
         this.jumpHeld = false;
         this.jumpPressed = false;
         this.jumpReleased = false;
+        this.dirPointerId = null;
         this.activePointers.clear();
         document.querySelectorAll('.touch-btn').forEach(btn => btn.classList.remove('active'));
       }
@@ -1620,14 +1623,67 @@
       }
 
       _bindTouchButtons() {
-        const mapBtn = (id, action) => {
+        // 1. Kluster Arah Gerak Kiri / Kanan (Mendukung Geser / Slide Touchscreen Mulus Tanpa Perlu Angkat Jari)
+        const tLeft = document.getElementById('t-left');
+        const tRight = document.getElementById('t-right');
+        const dirCluster = tLeft ? tLeft.parentElement : null;
+
+        if (dirCluster && tLeft && tRight) {
+          const updateDirection = (e) => {
+            const lRect = tLeft.getBoundingClientRect();
+            const rRect = tRight.getBoundingClientRect();
+            const midX = (lRect.right + rRect.left) / 2;
+            const minY = Math.min(lRect.top, rRect.top) - 50;
+            const maxY = Math.max(lRect.bottom, rRect.bottom) + 50;
+            const minX = lRect.left - 50;
+            const maxX = rRect.right + 50;
+
+            const inside = e.clientX >= minX && e.clientX <= maxX && e.clientY >= minY && e.clientY <= maxY;
+            const isLeft = inside && e.clientX < midX;
+            const isRight = inside && e.clientX >= midX;
+
+            this.left = isLeft;
+            this.right = isRight;
+            tLeft.classList.toggle('active', isLeft);
+            tRight.classList.toggle('active', isRight);
+          };
+
+          const releaseDirection = (e) => {
+            if (e.pointerId === this.dirPointerId) {
+              this.dirPointerId = null;
+              this.left = false;
+              this.right = false;
+              tLeft.classList.remove('active');
+              tRight.classList.remove('active');
+            }
+          };
+
+          dirCluster.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            this._triggerInteraction();
+            this.dirPointerId = e.pointerId;
+            try { dirCluster.setPointerCapture(e.pointerId); } catch (_) {}
+            updateDirection(e);
+          });
+
+          window.addEventListener('pointermove', (e) => {
+            if (e.pointerId === this.dirPointerId) {
+              updateDirection(e);
+            }
+          });
+
+          window.addEventListener('pointerup', releaseDirection);
+          window.addEventListener('pointercancel', releaseDirection);
+          dirCluster.addEventListener('lostpointercapture', releaseDirection);
+        }
+
+        // 2. Tombol Aksi (Lari & Lompat)
+        const mapActionBtn = (id, action) => {
           const el = document.getElementById(id);
           if (!el) return;
 
           const setAction = (pressed) => {
             el.classList.toggle('active', pressed);
-            if (action === 'left') this.left = pressed;
-            if (action === 'right') this.right = pressed;
             if (action === 'run') this.run = pressed;
             if (action === 'jump') {
               if (pressed && !this.jumpHeld) this.jumpPressed = true;
@@ -1639,7 +1695,7 @@
           el.addEventListener('pointerdown', (e) => {
             e.preventDefault();
             this._triggerInteraction();
-            el.setPointerCapture(e.pointerId);
+            try { el.setPointerCapture(e.pointerId); } catch (_) {}
             this.activePointers.set(e.pointerId, { el, setAction });
             setAction(true);
           });
@@ -1656,10 +1712,8 @@
           el.addEventListener('lostpointercapture', release);
         };
 
-        mapBtn('t-left', 'left');
-        mapBtn('t-right', 'right');
-        mapBtn('t-run', 'run');
-        mapBtn('t-jump', 'jump');
+        mapActionBtn('t-run', 'run');
+        mapActionBtn('t-jump', 'jump');
       }
 
       _bindWindowEvents() {

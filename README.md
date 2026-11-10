@@ -96,3 +96,4 @@ Game ini dibangun murni menggunakan HTML5 Canvas dan JavaScript standar (*Vanill
 
 Kode sumber proyek ini dilisensikan di bawah [MIT License](LICENSE).
 Aset grafis dan suara adalah hak cipta masing-masing kreator di bawah lisensi CC0 Public Domain.
+
