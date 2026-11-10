@@ -651,7 +651,7 @@
       font-weight: bold;
     }
 
-    /* Mobile Touch Controls */
+    /* Mobile Touch Controls - Retro Arcade / Game Boy Edition */
     #touch-controls {
       position: absolute;
       bottom: 14px;
@@ -662,63 +662,164 @@
       align-items: flex-end;
       pointer-events: none;
       z-index: 15;
+      user-select: none;
+      -webkit-user-select: none;
     }
 
-    .touch-cluster {
+    /* Left D-Pad Capsule */
+    .touch-dpad-capsule {
       display: flex;
-      gap: 12px;
+      align-items: center;
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 2px solid rgba(148, 163, 184, 0.35);
+      border-radius: 36px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.15);
       pointer-events: auto;
       touch-action: none;
+      padding: 3px;
+    }
+
+    .dpad-divider {
+      width: 2px;
+      height: 30px;
+      background: linear-gradient(to bottom, transparent, rgba(148, 163, 184, 0.35), transparent);
+      pointer-events: none;
     }
 
     .touch-btn {
-      width: 58px;
-      height: 58px;
-      border-radius: 12px;
-      background: rgba(255, 255, 255, 0.14);
-      border: 2px solid rgba(255, 255, 255, 0.35);
-      color: #fff;
-      font-size: 20px;
-      font-weight: bold;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      backdrop-filter: blur(2px);
-      touch-action: none;
       cursor: pointer;
       user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.08s ease, background 0.08s ease, box-shadow 0.08s ease;
     }
 
-    .touch-btn.jump-btn {
-      width: 68px;
-      height: 68px;
+    .dpad-btn {
+      width: 58px;
+      height: 54px;
+      border-radius: 28px;
+      color: rgba(241, 245, 249, 0.85);
+      font-size: 20px;
+    }
+
+    .dpad-btn svg {
+      filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5));
+      transition: transform 0.08s ease;
+      pointer-events: none;
+    }
+
+    .dpad-btn.active {
+      background: rgba(56, 189, 248, 0.28);
+      color: #38bdf8;
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.55), inset 0 0 8px rgba(56, 189, 248, 0.3);
+    }
+
+    .dpad-btn.active svg {
+      transform: scale(1.15);
+    }
+
+    /* Right Action Cluster (Retro Angled B & A) */
+    .touch-action-cluster {
+      display: flex;
+      align-items: flex-end;
+      gap: 12px;
+      pointer-events: auto;
+      touch-action: none;
+      padding-bottom: 2px;
+    }
+
+    /* Button B (LARI) - Cyan */
+    .touch-btn.btn-b {
+      width: 54px;
+      height: 54px;
       border-radius: 50%;
-      background: rgba(255, 204, 0, 0.22);
-      border-color: rgba(255, 204, 0, 0.65);
-      font-size: 15px;
+      background: rgba(15, 23, 42, 0.68);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 2px solid rgba(6, 182, 212, 0.65);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      color: #06b6d4;
+      margin-bottom: 2px;
     }
 
-    .touch-btn.run-btn {
-      width: 52px;
-      height: 52px;
+    .touch-btn.btn-b .btn-letter {
+      font-size: 19px;
+      font-weight: 900;
+      line-height: 1;
+      text-shadow: 0 0 8px rgba(6, 182, 212, 0.5);
+      pointer-events: none;
+    }
+
+    .touch-btn.btn-b .btn-sub {
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      opacity: 0.85;
+      margin-top: 2px;
+      pointer-events: none;
+    }
+
+    .touch-btn.btn-b.active {
+      background: rgba(6, 182, 212, 0.4);
+      border-color: #22d3ee;
+      color: #fff;
+      box-shadow: 0 0 20px rgba(6, 182, 212, 0.85), inset 0 0 10px rgba(6, 182, 212, 0.5);
+      transform: scale(0.92);
+    }
+
+    /* Button A (LOMPAT) - Gold */
+    .touch-btn.btn-a {
+      width: 66px;
+      height: 66px;
       border-radius: 50%;
-      background: rgba(46, 196, 182, 0.2);
-      border-color: rgba(46, 196, 182, 0.55);
-      font-size: 12px;
+      background: rgba(15, 23, 42, 0.72);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 2px solid rgba(250, 204, 21, 0.75);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+      color: #facc15;
+      margin-bottom: 14px; /* Ergonomic diagonal elevation */
     }
 
-    .touch-btn.active {
-      background: rgba(255, 204, 0, 0.45);
-      transform: scale(0.94);
+    .touch-btn.btn-a .btn-letter {
+      font-size: 24px;
+      font-weight: 900;
+      line-height: 1;
+      text-shadow: 0 0 10px rgba(250, 204, 21, 0.5);
+      pointer-events: none;
+    }
+
+    .touch-btn.btn-a .btn-sub {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      opacity: 0.9;
+      margin-top: 2px;
+      pointer-events: none;
+    }
+
+    .touch-btn.btn-a.active {
+      background: rgba(250, 204, 21, 0.42);
+      border-color: #fef08a;
+      color: #fff;
+      box-shadow: 0 0 24px rgba(250, 204, 21, 0.88), inset 0 0 12px rgba(250, 204, 21, 0.55);
+      transform: scale(0.92);
     }
 
     @media (min-width: 820px) and (pointer: fine) {
       #touch-controls {
-        opacity: 0.35;
+        opacity: 0.4;
         transition: opacity 0.2s;
       }
       #touch-controls:hover {
-        opacity: 0.9;
+        opacity: 0.95;
       }
     }
 
@@ -733,13 +834,18 @@
       .hud-stat {
         padding: 3px 6px;
       }
-      .touch-btn {
-        width: 52px;
-        height: 52px;
+      .dpad-btn {
+        width: 48px;
+        height: 44px;
       }
-      .touch-btn.jump-btn {
-        width: 62px;
-        height: 62px;
+      .touch-btn.btn-b {
+        width: 48px;
+        height: 48px;
+      }
+      .touch-btn.btn-a {
+        width: 58px;
+        height: 58px;
+        margin-bottom: 10px;
       }
     }
   </style>
@@ -969,15 +1075,29 @@
       </div>
     </div>
 
-    <!-- Touch Controls -->
+    <!-- Touch Controls: Retro Arcade / Game Boy Layout -->
     <div id="touch-controls">
-      <div class="touch-cluster">
-        <div id="t-left" class="touch-btn" aria-label="Gerak Kiri">◀</div>
-        <div id="t-right" class="touch-btn" aria-label="Gerak Kanan">▶</div>
+      <!-- Left D-Pad Capsule (Smooth Sliding Kiri/Kanan) -->
+      <div class="touch-dpad-capsule">
+        <div id="t-left" class="touch-btn dpad-btn" role="button" aria-label="Gerak Kiri">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+        </div>
+        <div class="dpad-divider"></div>
+        <div id="t-right" class="touch-btn dpad-btn" role="button" aria-label="Gerak Kanan">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+        </div>
       </div>
-      <div class="touch-cluster" style="align-items: center;">
-        <div id="t-run" class="touch-btn run-btn" aria-label="Lari">LARI</div>
-        <div id="t-jump" class="touch-btn jump-btn" aria-label="Lompat">LOMPAT</div>
+
+      <!-- Right Action Cluster: Angled B (Lari) & A (Lompat) -->
+      <div class="touch-action-cluster">
+        <div id="t-run" class="touch-btn btn-b" role="button" aria-label="Lari (B)">
+          <span class="btn-letter">B</span>
+          <span class="btn-sub">LARI</span>
+        </div>
+        <div id="t-jump" class="touch-btn btn-a" role="button" aria-label="Lompat (A)">
+          <span class="btn-letter">A</span>
+          <span class="btn-sub">LOMPAT</span>
+        </div>
       </div>
     </div>
   </div>
