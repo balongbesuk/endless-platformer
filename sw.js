@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'offline-adventure-v2.8.3';
+const CACHE_VERSION = 'offline-adventure-v2.8.4';
 const PRECACHE_ASSETS = [
   './',
   './index.html',

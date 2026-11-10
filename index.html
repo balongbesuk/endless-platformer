@@ -878,9 +878,300 @@
         margin-bottom: 8px;
       }
     }
+
+    /* ==========================================================================
+       Rotate Device Overlay (Paksa Mode Landscape di Smartphone)
+       ========================================================================== */
+    #rotate-device-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      background: radial-gradient(circle at center, #1e293b 0%, #0a0d18 100%);
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      color: #fff;
+      text-align: center;
+      box-sizing: border-box;
+    }
+
+    @media screen and (orientation: portrait) and (max-width: 900px) {
+      #rotate-device-overlay {
+        display: flex;
+      }
+    }
+
+    .rotate-card {
+      max-width: 330px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .rotate-phone-anim {
+      width: 70px;
+      height: 70px;
+      position: relative;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .rotate-phone-body {
+      width: 32px;
+      height: 52px;
+      border: 3px solid #facc15;
+      border-radius: 6px;
+      position: relative;
+      animation: rotatePhone 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+      box-shadow: 0 0 20px rgba(250, 204, 21, 0.45);
+    }
+
+    .rotate-phone-body::after {
+      content: '';
+      position: absolute;
+      bottom: 4px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 5px;
+      height: 5px;
+      background: #facc15;
+      border-radius: 50%;
+    }
+
+    @keyframes rotatePhone {
+      0%, 15% { transform: rotate(0deg); }
+      45%, 70% { transform: rotate(-90deg); }
+      85%, 100% { transform: rotate(0deg); }
+    }
+
+    .rotate-title {
+      font-size: 16px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      color: #facc15;
+      margin-bottom: 8px;
+      text-shadow: 0 0 10px rgba(250, 204, 21, 0.4);
+    }
+
+    .rotate-desc {
+      font-size: 12px;
+      line-height: 1.5;
+      color: #cbd5e1;
+      margin-bottom: 16px;
+    }
+
+    .btn-rotate-auto {
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      border: 2px solid #38bdf8;
+      border-radius: 8px;
+      color: #fff;
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: bold;
+      padding: 8px 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.4);
+    }
+
+    /* ==========================================================================
+       PWA Install Banner & Highlights
+       ========================================================================== */
+    #pwa-install-banner {
+      position: fixed;
+      top: max(8px, env(safe-area-inset-top));
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1.5px solid rgba(56, 189, 248, 0.55);
+      border-radius: 12px;
+      padding: 6px 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), 0 0 16px rgba(56, 189, 248, 0.25);
+      max-width: 90vw;
+      box-sizing: border-box;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    #pwa-install-banner.hidden {
+      display: none !important;
+    }
+
+    .pwa-banner-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .pwa-banner-ico {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      flex-shrink: 0;
+    }
+
+    .pwa-banner-info {
+      display: flex;
+      flex-direction: column;
+      text-align: left;
+    }
+
+    .pwa-banner-title {
+      font-size: 11px;
+      font-weight: bold;
+      color: #f1f5f9;
+      line-height: 1.2;
+    }
+
+    .pwa-banner-sub {
+      font-size: 9px;
+      color: #94a3b8;
+      line-height: 1.2;
+    }
+
+    .pwa-banner-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-banner-action {
+      background: linear-gradient(135deg, #10b981, #059669);
+      border: 1px solid #34d399;
+      color: #fff;
+      font-family: inherit;
+      font-size: 10px;
+      font-weight: bold;
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+      white-space: nowrap;
+    }
+
+    .btn-banner-action:active {
+      transform: scale(0.95);
+    }
+
+    .btn-banner-x {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      font-size: 14px;
+      cursor: pointer;
+      padding: 4px;
+      line-height: 1;
+    }
+
+    /* Highlighted Install Button in Start Menu */
+    .btn-pwa-highlight {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(6, 182, 212, 0.25)) !important;
+      border: 2px solid #10b981 !important;
+      color: #a7f3d0 !important;
+      box-shadow: 0 0 16px rgba(16, 185, 129, 0.35) !important;
+      animation: pulseInstall 2.5s infinite;
+    }
+
+    @keyframes pulseInstall {
+      0%, 100% { box-shadow: 0 0 12px rgba(16, 185, 129, 0.3); }
+      50% { box-shadow: 0 0 22px rgba(16, 185, 129, 0.65); }
+    }
+
+    /* iOS Install Guide Modal */
+    #modal-ios-install {
+      position: fixed;
+      inset: 0;
+      z-index: 100000;
+      background: rgba(10, 14, 26, 0.88);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    #modal-ios-install.hidden {
+      display: none !important;
+    }
+    .ios-install-card {
+      background: #1e293b;
+      border: 2px solid #38bdf8;
+      border-radius: 14px;
+      padding: 18px 22px;
+      max-width: 320px;
+      color: #f1f5f9;
+      text-align: center;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+    }
+    .ios-install-steps {
+      text-align: left;
+      font-size: 11px;
+      line-height: 1.6;
+      margin: 12px 0;
+      color: #cbd5e1;
+    }
+    .ios-install-steps ol {
+      padding-left: 18px;
+      margin: 0;
+    }
   </style>
 </head>
 <body>
+
+  <!-- Rotate Device Overlay: Paksa Mode Landscape di Smartphone -->
+  <div id="rotate-device-overlay">
+    <div class="rotate-card">
+      <div class="rotate-phone-anim">
+        <div class="rotate-phone-body"></div>
+      </div>
+      <div class="rotate-title">PUTAR LAYAR HP ANDA</div>
+      <div class="rotate-desc">Game ini dirancang khusus untuk posisi horizontal (Landscape). Silakan putar HP Anda ke posisi menyamping untuk bermain!</div>
+      <button id="btn-force-landscape" class="btn-rotate-auto" type="button">
+        <span>🔄</span> KUNCI OTOMATIS KE LANDSCAPE
+      </button>
+    </div>
+  </div>
+
+  <!-- Floating PWA Install Banner (Rekomendasi Install di HP) -->
+  <div id="pwa-install-banner" class="hidden">
+    <div class="pwa-banner-left">
+      <img src="icon-192.png" alt="Icon" class="pwa-banner-ico" />
+      <div class="pwa-banner-info">
+        <div class="pwa-banner-title">Pasang Offline Adventure</div>
+        <div class="pwa-banner-sub">Layar penuh & main tanpa kuota</div>
+      </div>
+    </div>
+    <div class="pwa-banner-right">
+      <button id="btn-banner-install" class="btn-banner-action" type="button">PASANG</button>
+      <button id="btn-banner-close" class="btn-banner-x" type="button" aria-label="Tutup">✕</button>
+    </div>
+  </div>
+
+  <!-- Modal Panduan Install iOS Safari -->
+  <div id="modal-ios-install" class="hidden">
+    <div class="ios-install-card">
+      <div style="font-size: 14px; font-weight: bold; color: #38bdf8; margin-bottom: 6px;">Cara Pasang di iPhone / iPad</div>
+      <div class="ios-install-steps">
+        <ol>
+          <li>Tekan ikon <strong>Bagikan (Share ⎋)</strong> di bilah bawah Safari.</li>
+          <li>Gulir menu ke bawah lalu pilih <strong>Tambah ke Layar Utama (Add to Home Screen)</strong>.</li>
+          <li>Buka game dari ikon di Home Screen untuk main <strong>layar penuh</strong> dan <strong>offline</strong>!</li>
+        </ol>
+      </div>
+      <button id="btn-ios-close" class="btn" style="padding: 6px 16px; font-size: 11px; margin-top: 6px;">MENGERTI</button>
+    </div>
+  </div>
 
   <div id="game-wrapper">
     <canvas id="game-canvas" width="800" height="450"></canvas>
@@ -6333,37 +6624,96 @@
       }
     }
 
-    // Inisialisasi Game & Service Worker & PWA Install Prompt
+    // Inisialisasi Game & Service Worker & PWA Install Prompt & Orientation
     function initApp() {
       if (window.game) return;
       window.game = new Game();
 
-      // PWA Install Button Handler
+      // 1. PWA Install & Landscape Handler
       let deferredPrompt = null;
       const installBtn = document.getElementById('btn-install-pwa');
+      const banner = document.getElementById('pwa-install-banner');
+      const btnBannerInstall = document.getElementById('btn-banner-install');
+      const btnBannerClose = document.getElementById('btn-banner-close');
+      const modalIos = document.getElementById('modal-ios-install');
+      const btnIosClose = document.getElementById('btn-ios-close');
+      const btnForceLandscape = document.getElementById('btn-force-landscape');
+
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+      const isMobile = /android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent.toLowerCase()) || (navigator.maxTouchPoints > 0 && window.innerWidth <= 960);
+      const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent.toLowerCase());
+      const bannerDismissed = sessionStorage.getItem('pwa_banner_dismissed') === '1';
+
+      // Tombol Kunci Otomatis ke Landscape
+      if (btnForceLandscape) {
+        btnForceLandscape.addEventListener('click', async () => {
+          try {
+            if (document.documentElement.requestFullscreen) {
+              await document.documentElement.requestFullscreen();
+            } else if (document.documentElement.webkitRequestFullscreen) {
+              await document.documentElement.webkitRequestFullscreen();
+            }
+            if (screen.orientation && screen.orientation.lock) {
+              await screen.orientation.lock('landscape');
+            }
+          } catch (_) {}
+        });
+      }
+
+      // Tampilkan tombol & banner rekomendasi PWA jika belum terpasang
+      const showInstallOption = () => {
+        if (isStandalone) return;
+        if (installBtn) {
+          installBtn.classList.remove('hidden');
+          installBtn.classList.add('btn-pwa-highlight');
+        }
+        if (banner && !bannerDismissed && isMobile) {
+          banner.classList.remove('hidden');
+        }
+      };
 
       window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredPrompt = e;
-        if (installBtn) {
-          installBtn.classList.remove('hidden');
-        }
+        showInstallOption();
       });
 
-      if (installBtn) {
-        installBtn.addEventListener('click', async () => {
-          if (!deferredPrompt) return;
+      // Di iOS Safari sebelum prompt tidak didukung, tampilkan panduan khusus iOS
+      if (isIOS && !isStandalone) {
+        showInstallOption();
+      }
+
+      const triggerInstall = async () => {
+        if (deferredPrompt) {
           deferredPrompt.prompt();
           const { outcome } = await deferredPrompt.userChoice;
           if (outcome === 'accepted') {
-            installBtn.classList.add('hidden');
+            if (installBtn) installBtn.classList.add('hidden');
+            if (banner) banner.classList.add('hidden');
           }
           deferredPrompt = null;
+        } else if (isIOS && modalIos) {
+          modalIos.classList.remove('hidden');
+        }
+      };
+
+      if (installBtn) installBtn.addEventListener('click', triggerInstall);
+      if (btnBannerInstall) btnBannerInstall.addEventListener('click', triggerInstall);
+      if (btnBannerClose && banner) {
+        btnBannerClose.addEventListener('click', () => {
+          banner.classList.add('hidden');
+          sessionStorage.setItem('pwa_banner_dismissed', '1');
+        });
+      }
+      if (btnIosClose && modalIos) {
+        btnIosClose.addEventListener('click', () => {
+          modalIos.classList.add('hidden');
         });
       }
 
       window.addEventListener('appinstalled', () => {
         if (installBtn) installBtn.classList.add('hidden');
+        if (banner) banner.classList.add('hidden');
         const swStatusEl = document.getElementById('sw-status');
         if (swStatusEl) swStatusEl.textContent = 'Terpasang di Perangkat';
       });
