@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="theme-color" content="#121629" />
   <title>Offline Adventure — Endless Pixel Platformer</title>
   <link rel="manifest" href="manifest.webmanifest" />
@@ -823,16 +823,46 @@
       }
     }
 
-    @media (max-width: 600px) {
+    @media (max-width: 860px), (max-height: 520px) {
+      #game-wrapper {
+        border: none;
+        box-shadow: none;
+      }
       #hud {
-        font-size: 11px;
-        padding: 6px 8px;
+        font-size: 10px;
+        padding: 4px max(8px, env(safe-area-inset-right)) 4px max(8px, env(safe-area-inset-left));
+        align-items: center;
       }
       .hud-group {
-        gap: 6px;
+        gap: 5px;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+      .hud-group::-webkit-scrollbar {
+        display: none;
       }
       .hud-stat {
-        padding: 3px 6px;
+        padding: 2px 5px;
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+      .hud-stat .hud-label {
+        font-size: 8.5px;
+        margin-right: 2px;
+      }
+      .hud-controls {
+        gap: 5px;
+      }
+      .icon-btn {
+        width: 30px;
+        height: 30px;
+        padding: 4px;
+      }
+      #touch-controls {
+        bottom: max(8px, env(safe-area-inset-bottom));
+        left: max(10px, env(safe-area-inset-left));
+        right: max(10px, env(safe-area-inset-right));
       }
       .dpad-btn {
         width: 48px;
@@ -845,7 +875,7 @@
       .touch-btn.btn-a {
         width: 58px;
         height: 58px;
-        margin-bottom: 10px;
+        margin-bottom: 8px;
       }
     }
   </style>
