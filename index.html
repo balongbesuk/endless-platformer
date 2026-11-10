@@ -2008,6 +2008,7 @@
         this.jumpReleased = false;
         this.dirPointerId = null;
         this.activePointers.clear();
+        if (this.actionTouches) this.actionTouches.clear();
         document.querySelectorAll('.touch-btn').forEach(btn => btn.classList.remove('active'));
       }
 
@@ -2118,43 +2119,77 @@
           dirCluster.addEventListener('lostpointercapture', releaseDirection);
         }
 
-        // 2. Tombol Aksi (Lari & Lompat)
-        const mapActionBtn = (id, action) => {
-          const el = document.getElementById(id);
-          if (!el) return;
+        // 2. Kluster Tombol Aksi (Lari & Lompat) - Mendukung Geser / Slide Touchscreen Mulus Tanpa Angkat Jari
+        const tRun = document.getElementById('t-run');
+        const tJump = document.getElementById('t-jump');
+        const actionCluster = tRun ? tRun.parentElement : null;
 
-          const setAction = (pressed) => {
-            el.classList.toggle('active', pressed);
-            if (action === 'run') this.run = pressed;
-            if (action === 'jump') {
-              if (pressed && !this.jumpHeld) this.jumpPressed = true;
-              if (!pressed && this.jumpHeld) this.jumpReleased = true;
-              this.jumpHeld = pressed;
+        if (actionCluster && tRun && tJump) {
+          this.actionTouches = new Map();
+
+          const updateActionStates = () => {
+            const rRect = tRun.getBoundingClientRect();
+            const jRect = tJump.getBoundingClientRect();
+            const rCx = rRect.left + rRect.width / 2;
+            const rCy = rRect.top + rRect.height / 2;
+            const rRad = rRect.width / 2 + 16;
+
+            const jCx = jRect.left + jRect.width / 2;
+            const jCy = jRect.top + jRect.height / 2;
+            const jRad = jRect.width / 2 + 16;
+
+            let isRunActive = false;
+            let isJumpActive = false;
+
+            for (const pt of this.actionTouches.values()) {
+              const dRun = Math.hypot(pt.clientX - rCx, pt.clientY - rCy);
+              const dJump = Math.hypot(pt.clientX - jCx, pt.clientY - jCy);
+
+              if (dRun <= rRad) isRunActive = true;
+              if (dJump <= jRad) isJumpActive = true;
+            }
+
+            // Update Lari (B)
+            this.run = isRunActive;
+            tRun.classList.toggle('active', isRunActive);
+
+            // Update Lompat (A)
+            if (isJumpActive && !this.jumpHeld) {
+              this.jumpPressed = true;
+            }
+            if (!isJumpActive && this.jumpHeld) {
+              this.jumpReleased = true;
+            }
+            this.jumpHeld = isJumpActive;
+            tJump.classList.toggle('active', isJumpActive);
+          };
+
+          const releaseActionPointer = (e) => {
+            if (this.actionTouches.has(e.pointerId)) {
+              this.actionTouches.delete(e.pointerId);
+              updateActionStates();
             }
           };
 
-          el.addEventListener('pointerdown', (e) => {
+          actionCluster.addEventListener('pointerdown', (e) => {
             e.preventDefault();
             this._triggerInteraction();
-            try { el.setPointerCapture(e.pointerId); } catch (_) {}
-            this.activePointers.set(e.pointerId, { el, setAction });
-            setAction(true);
+            try { actionCluster.setPointerCapture(e.pointerId); } catch (_) {}
+            this.actionTouches.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
+            updateActionStates();
           });
 
-          const release = (e) => {
-            if (this.activePointers.has(e.pointerId)) {
-              setAction(false);
-              this.activePointers.delete(e.pointerId);
+          window.addEventListener('pointermove', (e) => {
+            if (this.actionTouches.has(e.pointerId)) {
+              this.actionTouches.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
+              updateActionStates();
             }
-          };
+          });
 
-          el.addEventListener('pointerup', release);
-          el.addEventListener('pointercancel', release);
-          el.addEventListener('lostpointercapture', release);
-        };
-
-        mapActionBtn('t-run', 'run');
-        mapActionBtn('t-jump', 'jump');
+          window.addEventListener('pointerup', releaseActionPointer);
+          window.addEventListener('pointercancel', releaseActionPointer);
+          actionCluster.addEventListener('lostpointercapture', releaseActionPointer);
+        }
       }
 
       _bindWindowEvents() {
