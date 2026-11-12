@@ -3888,7 +3888,6 @@
 
         if (data.leave) {
           this.peers.delete(data.id);
-          this._updateLiveLeaderboard();
           return;
         }
 
@@ -3928,8 +3927,6 @@
           }
           peer.lastSeen = now;
         }
-
-        this._updateLiveLeaderboard();
       }
 
       update(dt) {
@@ -3956,6 +3953,12 @@
           if (this.sendTimer >= this.sendInterval) {
             this.sendTimer = 0;
             this.broadcastState();
+          }
+
+          this.lbTimer = (this.lbTimer || 0) + dt;
+          if (this.lbTimer >= 0.35) {
+            this.lbTimer = 0;
+            this._updateLiveLeaderboard();
           }
         }
       }
@@ -4019,6 +4022,8 @@
             this.client.send(message);
           } catch {}
         }
+        this._lastLbHtml = '';
+        this._lastCount = -1;
         const liveCard = document.getElementById('live-leaderboard');
         if (liveCard) liveCard.classList.add('hidden');
       }
@@ -4047,11 +4052,12 @@
         all.sort((a, b) => b.score - a.score);
         const top5 = all.slice(0, 5);
 
-        if (countEl) {
+        if (countEl && this._lastCount !== all.length) {
+          this._lastCount = all.length;
           countEl.textContent = `${all.length} Online`;
         }
 
-        listEl.innerHTML = top5.map((p, idx) => {
+        const html = top5.map((p, idx) => {
           const rank = idx + 1;
           const crown = rank === 1 ? '👑 ' : '';
           const style = p.isMe ? 'color: #38bdf8; font-weight: bold;' : 'color: #e2e8f0;';
@@ -4061,6 +4067,11 @@
             <span style="color:#facc15; margin-left:6px; font-weight:bold;">${p.score.toLocaleString()}</span>
           </div>`;
         }).join('');
+
+        if (this._lastLbHtml !== html) {
+          this._lastLbHtml = html;
+          listEl.innerHTML = html;
+        }
       }
     }
 
