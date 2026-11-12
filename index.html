@@ -2791,6 +2791,22 @@
         return seg;
       }
 
+      getSurfaceYAt(x, w = 0, defaultY = 380) {
+        const segIdx = Math.floor(x / CONFIG.WORLD.SEGMENT_WIDTH);
+        let highestY = defaultY;
+        for (let sIdx = segIdx - 1; sIdx <= segIdx + 1; sIdx++) {
+          const seg = this.segments.get(sIdx);
+          if (!seg) continue;
+          for (let i = 0; i < seg.platforms.length; i++) {
+            const p = seg.platforms[i];
+            if ((x + w >= p.x) && (x <= p.x + p.w)) {
+              if (p.y < highestY) highestY = p.y;
+            }
+          }
+        }
+        return highestY;
+      }
+
       _generateSegment(index) {
         const W = CONFIG.WORLD.SEGMENT_WIDTH;
         const startX = index * W;
@@ -4840,7 +4856,7 @@
         // 1. Render Garis Laser Bidikan & Reticle Bahaya di Tanah saat TELEGRAPH
         if (boss.state === 'TELEGRAPH') {
           const targetScreenX = Math.floor(boss.targetX + boss.w / 2 - camX);
-          const groundScreenY = Math.floor(380 - camY);
+          const groundScreenY = Math.floor((boss.targetGroundY || 380) - camY);
 
           // Garis laser putus-putus berkedip
           ctx.strokeStyle = (Math.floor(time * 24) & 1) ? '#ef4444' : 'rgba(239, 68, 68, 0.35)';
@@ -5983,6 +5999,7 @@
               boss.state = 'TELEGRAPH';
               boss.timer = isEnraged ? 0.55 : 0.8;
               boss.targetX = Math.max(minBossX + 30, Math.min(maxBossX - 30, this.player.x - 12));
+              boss.targetGroundY = this.world.getSurfaceYAt(boss.targetX, boss.w);
               this.audio.siren();
             }
 
@@ -5993,6 +6010,7 @@
               boss.state = 'DIVE';
               boss.x = boss.targetX;
               boss.vy = isEnraged ? 560 : 460;
+              boss.targetGroundY = this.world.getSurfaceYAt(boss.x, boss.w);
               this.audio.bossSlam();
             }
 
@@ -6000,21 +6018,24 @@
             boss.y += boss.vy * dt;
             this.particles.spawn(boss.x + 24, boss.y, 2, '#f97316', 60);
 
-            // Menghantam tanah / platform di ketinggian ground
-            if (boss.y >= 380 - boss.h) {
-              boss.y = 380 - boss.h;
+            // Menghantam tanah / platform di ketinggian dinamis terrain (tidak tembus jika tanah berundak)
+            const surfaceY = boss.targetGroundY || this.world.getSurfaceYAt(boss.x, boss.w);
+            const slamY = surfaceY - boss.h;
+            if (boss.y >= slamY) {
+              boss.y = slamY;
               boss.vy = 0;
               boss.state = 'STUNNED';
               boss.timer = isEnraged ? 1.0 : 1.4;
               this.camera.shake(0.35, 8);
               this.vibrate(35);
-              this.particles.spawn(boss.x + 24, 380, 24, '#f59e0b', 180);
+              this.particles.spawn(boss.x + 24, surfaceY, 24, '#f59e0b', 180);
 
-              // Lepas 2 Shockwaves energi merambat di tanah ke kiri & kanan!
+              // Lepas 2 Shockwaves energi merambat di tanah ke kiri & kanan sesuai level tanah!
               const swSpd = isEnraged ? 230 : 180;
+              const swY = surfaceY - 14;
               this.bossProjectiles.push(
-                { x: boss.x - 6, y: 366, w: 16, h: 14, vx: -swSpd, vy: 0, life: 1.1, type: 'shockwave' },
-                { x: boss.x + boss.w - 10, y: 366, w: 16, h: 14, vx: swSpd, vy: 0, life: 1.1, type: 'shockwave' }
+                { x: boss.x - 6, y: swY, w: 16, h: 14, vx: -swSpd, vy: 0, life: 1.1, type: 'shockwave' },
+                { x: boss.x + boss.w - 10, y: swY, w: 16, h: 14, vx: swSpd, vy: 0, life: 1.1, type: 'shockwave' }
               );
             }
 
@@ -6149,8 +6170,9 @@
               continue;
             }
           } else if (pr.type === 'bomb') {
-            if (pr.y >= 380) {
-              this.particles.spawn(pr.x + 6, 380, 8, '#facc15', 90);
+            const bombGroundY = this.world.getSurfaceYAt(pr.x, pr.w || 12);
+            if (pr.y >= bombGroundY - (pr.h || 12)) {
+              this.particles.spawn(pr.x + 6, bombGroundY, 8, '#facc15', 90);
               this.bossProjectiles.splice(i, 1);
               continue;
             }
