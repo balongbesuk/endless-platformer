@@ -1,4 +1,5 @@
-<img width="974" height="557" alt="image" src="https://github.com/user-attachments/assets/805eab77-8994-4f31-a6bf-486003e590ee" />
+<img width="973" height="554" alt="image" src="https://github.com/user-attachments/assets/9859cf1e-4450-444b-b1c1-50effe828084" />
+
 
 
 # Offline Adventure — Endless Pixel Platformer
