@@ -1,8 +1,9 @@
-const CACHE_VERSION = 'offline-adventure-v2.8.8';
+const CACHE_VERSION = 'offline-adventure-v2.9.0';
 const PRECACHE_ASSETS = [
   './',
   './index.html',
   './manifest.webmanifest',
+  './js/paho-mqtt.min.js',
   './icon.svg',
   './icon-192.png',
   './icon-512.png',
