@@ -1505,10 +1505,16 @@
     <div id="screen-leaderboard" class="overlay hidden">
       <div class="card" style="max-width: 460px; max-height: 90vh; overflow-y: auto;">
         <div class="title">PAPAN REKOR ARCADE</div>
-        <div class="subtitle">Top 10 Petualang Terhebat Sepanjang Masa</div>
+        <div class="subtitle" id="lb-subtitle">Top 10 Petualang Terhebat Sepanjang Masa</div>
+
+        <!-- 2 Tab Mode: Rekor Lokal vs Rekor Global -->
+        <div class="shop-tabs" style="margin-bottom: 8px;">
+          <button id="tab-lb-local" class="shop-tab active" type="button" style="flex:1; justify-content:center; padding:7px 0;">🏠 REKOR LOKAL</button>
+          <button id="tab-lb-global" class="shop-tab" type="button" style="flex:1; justify-content:center; padding:7px 0;">🌐 REKOR GLOBAL (ONLINE)</button>
+        </div>
 
         <div style="background: rgba(0,0,0,0.5); border:1px solid var(--border); border-radius:4px; padding:6px 14px; display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-          <span style="font-size:11px; color:var(--muted);">REKOR TERTINGGI ANDA:</span>
+          <span id="lb-info-label" style="font-size:11px; color:var(--muted);">REKOR TERTINGGI ANDA:</span>
           <span id="lb-high-score-val" style="font-size:15px; font-weight:bold; color:var(--accent);">0 PTS</span>
         </div>
 
@@ -1516,7 +1522,7 @@
           <thead>
             <tr>
               <th style="width: 60px;">RANK</th>
-              <th>INISIAL</th>
+              <th id="lb-th-name">PETUALANG</th>
               <th style="text-align: right;">SKOR</th>
             </tr>
           </thead>
@@ -1527,7 +1533,7 @@
 
         <div class="btn-row" style="display:flex; gap:8px;">
           <button id="btn-leaderboard-close" class="btn" style="flex:2;"><img class="ico" src="assets/ui/Back.png" alt="">KEMBALI</button>
-          <button id="btn-leaderboard-reset" class="btn btn-secondary" style="flex:1; font-size:11px; color:#ef4444; border-color:rgba(239,68,68,0.4);" title="Kosongkan dan atur ulang papan rekor">RESET REKOR</button>
+          <button id="btn-leaderboard-reset" class="btn btn-secondary" style="flex:1; font-size:11px; color:#ef4444; border-color:rgba(239,68,68,0.4);" title="Kosongkan dan atur ulang papan rekor lokal">RESET LOKAL</button>
         </div>
       </div>
     </div>
@@ -1724,6 +1730,7 @@
         UNLOCKED_SKINS: 'oa_unlocked_skins_v1',
         UNLOCKED_EMOTES: 'oa_unlocked_emotes_v1',
         LEADERBOARD: 'oa_arcade_leaderboard_v1',
+        GLOBAL_LEADERBOARD: 'oa_global_leaderboard_v1',
         PLAYER_NAME: 'oa_player_name_v1'
       }
     });
@@ -1794,6 +1801,14 @@
       { id: 'crown', icon: '👑', name: 'Mahkota', price: 120, desc: 'Raja skor petualang' }
     ]);
 
+    const DEFAULT_GLOBAL_LEADERBOARD = Object.freeze([
+      { id: 'g_1', name: 'ZENITH', score: 12500, timestamp: 1710000000000, region: 'GLOBAL' },
+      { id: 'g_2', name: 'SHADOW', score: 9800, timestamp: 1710000000000, region: 'GLOBAL' },
+      { id: 'g_3', name: 'NEXUS', score: 7650, timestamp: 1710000000000, region: 'GLOBAL' },
+      { id: 'g_4', name: 'PHOENIX', score: 5400, timestamp: 1710000000000, region: 'GLOBAL' },
+      { id: 'g_5', name: 'BLAZE', score: 3200, timestamp: 1710000000000, region: 'GLOBAL' }
+    ]);
+
     /**
      * ============================================================================
      * 2. STORAGE MODULE (js/storage.js)
@@ -1810,7 +1825,8 @@
           [CONFIG.STORAGE_KEYS.UNLOCKED_SKINS]: '["scout"]',
           [CONFIG.STORAGE_KEYS.UNLOCKED_EMOTES]: '["laugh"]',
           [CONFIG.STORAGE_KEYS.PLAYER_NAME]: 'YOU',
-          [CONFIG.STORAGE_KEYS.LEADERBOARD]: '[]'
+          [CONFIG.STORAGE_KEYS.LEADERBOARD]: '[]',
+          [CONFIG.STORAGE_KEYS.GLOBAL_LEADERBOARD]: JSON.stringify(DEFAULT_GLOBAL_LEADERBOARD)
         };
       }
 
@@ -2003,7 +2019,7 @@
       }
 
       addLeaderboardEntry(name, score, entryId = null) {
-        const cleanName = (name || 'YOU').trim().substring(0, 3).toUpperCase() || 'YOU';
+        const cleanName = (name || 'YOU').trim().substring(0, 12).toUpperCase().replace(/[^A-Z0-9_]/g, '') || 'YOU';
         this.setPlayerName(cleanName);
         const cleanScore = Math.max(0, Math.floor(score));
 
@@ -2042,6 +2058,60 @@
 
         const rank = top10.findIndex(item => item.id === newId) + 1;
         return { board: top10, rank: rank > 0 ? rank : null, cleanName, cleanScore, entryId: newId };
+      }
+
+      getGlobalLeaderboard() {
+        try {
+          const val = localStorage.getItem(CONFIG.STORAGE_KEYS.GLOBAL_LEADERBOARD);
+          if (val !== null) {
+            const parsed = JSON.parse(val);
+            if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+          }
+          return JSON.parse(this.memoryFallback[CONFIG.STORAGE_KEYS.GLOBAL_LEADERBOARD] || '[]');
+        } catch {
+          return JSON.parse(this.memoryFallback[CONFIG.STORAGE_KEYS.GLOBAL_LEADERBOARD] || '[]');
+        }
+      }
+
+      addGlobalLeaderboardEntry(entry) {
+        if (!entry) return false;
+        const cleanScore = Math.floor(Number(entry.score ?? entry.sc));
+        if (isNaN(cleanScore) || cleanScore <= 0 || cleanScore > 9999999) return false;
+
+        const cleanName = String(entry.name || entry.n || 'HERO')
+          .trim()
+          .substring(0, 12)
+          .replace(/[^A-Za-z0-9_]/g, '') || 'HERO';
+
+        let board = this.getGlobalLeaderboard();
+
+        // Cari apakah pemain dengan id atau nama yang sama sudah ada di papan rekor
+        const existingIdx = board.findIndex(b => (entry.id && b.id === entry.id) || (b.name.toUpperCase() === cleanName.toUpperCase()));
+        if (existingIdx !== -1) {
+          if (cleanScore > board[existingIdx].score) {
+            board[existingIdx].score = cleanScore;
+            board[existingIdx].timestamp = entry.timestamp || Date.now();
+          } else {
+            return false;
+          }
+        } else {
+          board.push({
+            id: entry.id || ('g_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6)),
+            name: cleanName,
+            score: cleanScore,
+            timestamp: entry.timestamp || Date.now(),
+            region: entry.region || 'ONLINE'
+          });
+        }
+
+        board.sort((a, b) => b.score - a.score);
+        const top15 = board.slice(0, 15);
+        const serialized = JSON.stringify(top15);
+        this.memoryFallback[CONFIG.STORAGE_KEYS.GLOBAL_LEADERBOARD] = serialized;
+        try {
+          localStorage.setItem(CONFIG.STORAGE_KEYS.GLOBAL_LEADERBOARD, serialized);
+        } catch {}
+        return true;
       }
     }
 
@@ -3800,6 +3870,7 @@
         this.myId = 'p_' + Math.random().toString(16).substring(2, 10);
         this.peers = new Map();
         this.topic = 'balongbesuk/offline-adventure/global/v1';
+        this.recordsTopic = 'balongbesuk/offline-adventure/global/records-v1';
         this.sendTimer = 0;
         this.sendInterval = 0.125; // 8 fps sync (optimal & hemat data)
         this.statusText = 'OFFLINE';
@@ -3830,7 +3901,11 @@
           this.client.onMessageArrived = (msg) => {
             try {
               const data = JSON.parse(msg.payloadString);
-              this._handleMessage(data);
+              if (msg.destinationName === this.recordsTopic || (data && data.type === 'sync_record')) {
+                this._handleRecordMessage(data);
+              } else {
+                this._handleMessage(data);
+              }
             } catch {}
           };
 
@@ -3845,7 +3920,14 @@
               this._updateStatusUI();
               try {
                 this.client.subscribe(this.topic, { qos: 0 });
-                this.broadcastState();
+                this.client.subscribe(this.recordsTopic, { qos: 0 });
+                if (this.game.state === 'PLAYING') {
+                  this.broadcastState();
+                }
+                const hs = this.game.storage.getHighScore();
+                if (hs > 0) {
+                  this.broadcastRecord(this.game.storage.getPlayerName(), hs);
+                }
               } catch {}
             },
             onFailure: () => {
@@ -4026,6 +4108,45 @@
         this._lastCount = -1;
         const liveCard = document.getElementById('live-leaderboard');
         if (liveCard) liveCard.classList.add('hidden');
+      }
+
+      _handleRecordMessage(data) {
+        if (!data || data.id === this.myId) return;
+        const score = Number(data.score ?? data.sc);
+        const name = String(data.name ?? data.n ?? '');
+        if (score > 0 && name) {
+          const updated = this.game.storage.addGlobalLeaderboardEntry({
+            id: data.id,
+            name: name,
+            score: score,
+            timestamp: data.timestamp || Date.now()
+          });
+          if (updated && this.game.activeLbTab === 'global') {
+            const screenLb = document.getElementById('screen-leaderboard');
+            if (screenLb && !screenLb.classList.contains('hidden')) {
+              this.game._renderLeaderboardUI();
+            }
+          }
+        }
+      }
+
+      broadcastRecord(name, score) {
+        if (!this.connected || !this.client || score <= 0) return;
+        try {
+          const cleanName = String(name || this.game.storage.getPlayerName()).trim().substring(0, 12).replace(/[^A-Za-z0-9_]/g, '') || 'HERO';
+          const cleanScore = Math.min(9999999, Math.floor(score));
+          const payload = {
+            type: 'sync_record',
+            id: this.myId,
+            name: cleanName,
+            score: cleanScore,
+            timestamp: Date.now()
+          };
+          const message = new Paho.MQTT.Message(JSON.stringify(payload));
+          message.destinationName = this.recordsTopic;
+          message.qos = 0;
+          this.client.send(message);
+        } catch {}
       }
 
       _updateLiveLeaderboard() {
@@ -6131,6 +6252,7 @@
         this.bossAlertTimer = 0;
         this.bossProjectiles = [];
 
+        this.activeLbTab = 'local';
         this.mp = new MultiplayerManager(this);
 
         this._bindUI();
@@ -6236,10 +6358,31 @@
           });
         }
 
+        // Tab Papan Rekor (Lokal vs Global)
+        const tabLbLocal = document.getElementById('tab-lb-local');
+        const tabLbGlobal = document.getElementById('tab-lb-global');
+        if (tabLbLocal && tabLbGlobal) {
+          tabLbLocal.addEventListener('click', () => {
+            this.activeLbTab = 'local';
+            tabLbLocal.classList.add('active');
+            tabLbGlobal.classList.remove('active');
+            this.audio.coin();
+            this._renderLeaderboardUI();
+          });
+          tabLbGlobal.addEventListener('click', () => {
+            this.activeLbTab = 'global';
+            tabLbGlobal.classList.add('active');
+            tabLbLocal.classList.remove('active');
+            this.audio.coin();
+            if (this.mp && !this.mp.connected) this.mp.connect();
+            this._renderLeaderboardUI();
+          });
+        }
+
         const resetLbBtn = document.getElementById('btn-leaderboard-reset');
         if (resetLbBtn) {
           resetLbBtn.addEventListener('click', () => {
-            if (confirm('Atur ulang seluruh papan rekor ke pengaturan awal?')) {
+            if (confirm('Atur ulang seluruh papan rekor lokal ke pengaturan awal?')) {
               this.storage.resetLeaderboard();
               this.scoring.highScore = 0;
               document.getElementById('start-high').textContent = '0';
@@ -6259,7 +6402,7 @@
 
         const doSaveRecord = () => {
           if (!inputInitials) return;
-          const initials = (inputInitials.value || 'YOU').trim().substring(0, 3).toUpperCase() || 'YOU';
+          const initials = (inputInitials.value || 'YOU').trim().substring(0, 12).toUpperCase().replace(/[^A-Z0-9_]/g, '') || 'YOU';
           const score = this.scoring.score;
           if (score <= 0) {
             const msgEl = document.getElementById('go-record-msg');
@@ -6273,6 +6416,10 @@
           
           const result = this.storage.addLeaderboardEntry(initials, score, this.lastSavedRecordId);
           this.lastSavedRecordId = result.entryId;
+          this.storage.addGlobalLeaderboardEntry({ id: result.entryId, name: result.cleanName, score: result.cleanScore, timestamp: Date.now() });
+          if (this.mp) {
+            this.mp.broadcastRecord(result.cleanName, result.cleanScore);
+          }
           this.audio.coin(true);
 
           const formEl = document.getElementById('go-record-form');
@@ -6564,26 +6711,50 @@
       }
 
       _openLeaderboardModal() {
+        if (this.mp && !this.mp.connected) {
+          this.mp.connect();
+        }
         this._renderLeaderboardUI();
         document.getElementById('screen-leaderboard').classList.remove('hidden');
       }
 
       _renderLeaderboardUI() {
         const rowsContainer = document.getElementById('leaderboard-rows');
-        const board = this.storage.getLeaderboard();
+        const isGlobal = this.activeLbTab === 'global';
+        const board = isGlobal ? this.storage.getGlobalLeaderboard() : this.storage.getLeaderboard();
         rowsContainer.innerHTML = '';
 
         const highEl = document.getElementById('lb-high-score-val');
-        if (highEl) {
-          highEl.textContent = `${this.storage.getHighScore().toLocaleString()} PTS`;
+        const infoLabel = document.getElementById('lb-info-label');
+        const resetBtn = document.getElementById('btn-leaderboard-reset');
+        const subtitleEl = document.getElementById('lb-subtitle');
+
+        if (isGlobal) {
+          if (subtitleEl) subtitleEl.textContent = 'Top Rekor Dunia Pemain Online (Sinkronisasi Global)';
+          if (infoLabel) infoLabel.textContent = 'STATUS KONEKSI GLOBAL:';
+          if (highEl) {
+            highEl.textContent = this.mp && this.mp.connected ? '🟢 TERHUBUNG' : '⚪ OFFLINE (CACHE)';
+            highEl.style.color = this.mp && this.mp.connected ? '#22c55e' : 'var(--muted)';
+          }
+          if (resetBtn) resetBtn.style.display = 'none';
+        } else {
+          if (subtitleEl) subtitleEl.textContent = 'Top 10 Petualang Terhebat di Perangkat Ini';
+          if (infoLabel) infoLabel.textContent = 'REKOR TERTINGGI ANDA:';
+          if (highEl) {
+            highEl.textContent = `${this.storage.getHighScore().toLocaleString()} PTS`;
+            highEl.style.color = 'var(--accent)';
+          }
+          if (resetBtn) resetBtn.style.display = '';
         }
 
         if (!board || board.length === 0) {
           const emptyTr = document.createElement('tr');
-          emptyTr.innerHTML = `<td colspan="3" style="text-align:center; color:var(--muted); padding:16px 0;">Belum ada rekor tersimpan. Mulai petualanganmu!</td>`;
+          emptyTr.innerHTML = `<td colspan="3" style="text-align:center; color:var(--muted); padding:16px 0;">${isGlobal ? 'Belum ada rekor global tersinkronisasi.' : 'Belum ada rekor tersimpan. Mulai petualanganmu!'}</td>`;
           rowsContainer.appendChild(emptyTr);
           return;
         }
+
+        const myName = (this.storage.getPlayerName() || '').trim().toUpperCase();
 
         board.forEach((entry, idx) => {
           const rank = idx + 1;
@@ -6594,12 +6765,19 @@
           else if (rank === 3) { rankClass = 'rank-3'; medal = '🥉 3.'; }
 
           const isNew = this.lastSavedRecordId && (entry.id === this.lastSavedRecordId);
+          const entryUpper = String(entry.name || '').trim().toUpperCase();
+          const isMe = entryUpper === myName;
           const tr = document.createElement('tr');
           tr.className = `${rankClass} ${isNew ? 'new-record-row' : ''}`;
+          if (isMe && isGlobal) {
+            tr.style.background = 'rgba(56, 189, 248, 0.12)';
+          }
+          const safeName = String(entry.name || 'HERO').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          const tag = entry.preset ? '<span style="font-size:9px; color:var(--muted); font-weight:normal;">(BOT)</span>' : (isMe ? '<span style="font-size:9px; color:var(--accent); font-weight:normal;">(ANDA)</span>' : '');
           tr.innerHTML = `
             <td style="padding-left: 6px;">${medal}</td>
-            <td style="letter-spacing:1px; font-weight:bold;">${entry.name} ${entry.preset ? '<span style="font-size:9px; color:var(--muted); font-weight:normal;">(BOT)</span>' : ''}</td>
-            <td style="text-align: right; font-weight:bold; padding-right: 6px;">${entry.score.toLocaleString()}</td>
+            <td style="letter-spacing:1px; font-weight:bold;">${safeName} ${tag}</td>
+            <td style="text-align: right; font-weight:bold; padding-right: 6px;">${Number(entry.score || 0).toLocaleString()}</td>
           `;
           rowsContainer.appendChild(tr);
         });
@@ -6712,6 +6890,10 @@
         if (this.scoring.score > 0 && this.storage.isLeaderboardEligible(this.scoring.score)) {
           const autoRes = this.storage.addLeaderboardEntry(this.storage.getPlayerName(), this.scoring.score);
           this.lastSavedRecordId = autoRes.entryId;
+          this.storage.addGlobalLeaderboardEntry({ id: autoRes.entryId, name: this.storage.getPlayerName(), score: this.scoring.score, timestamp: Date.now() });
+          if (this.mp) {
+            this.mp.broadcastRecord(this.storage.getPlayerName(), this.scoring.score);
+          }
         }
 
         // Setup Record Input on Game Over
