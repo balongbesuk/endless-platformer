@@ -172,8 +172,8 @@
       text-align: center;
     }
 
-    .overlay.hidden {
-      display: none;
+    .hidden, .overlay.hidden {
+      display: none !important;
     }
 
     .card {
@@ -273,6 +273,34 @@
       z-index: 30;
       background: rgba(8, 11, 22, 0.96);
       backdrop-filter: blur(8px);
+    }
+
+    .shop-tabs {
+      display: flex;
+      gap: 8px;
+      margin: 8px 0 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      padding-bottom: 6px;
+    }
+
+    .shop-tab {
+      background: rgba(15, 23, 42, 0.65);
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: bold;
+      padding: 5px 14px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .shop-tab.active {
+      background: rgba(56, 189, 248, 0.22);
+      border-color: #38bdf8;
+      color: #38bdf8;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
     }
 
     .skins-grid {
@@ -735,6 +763,76 @@
       pointer-events: auto;
       touch-action: none;
       padding-bottom: 4px;
+      position: relative;
+    }
+
+    /* Emote Trigger Button on Touch Controls */
+    .emote-trigger-btn {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 2px solid rgba(244, 114, 182, 0.7);
+      color: #fff;
+      font-size: 20px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5), 0 0 12px rgba(244, 114, 182, 0.35);
+      position: absolute;
+      right: 0;
+      bottom: 104px;
+      z-index: 16;
+    }
+    .emote-trigger-btn.active, .emote-trigger-btn:active {
+      transform: scale(0.92);
+      background: rgba(244, 114, 182, 0.35);
+      border-color: #f472b6;
+    }
+
+    /* Emote Quick Picker Drawer */
+    .emote-picker-drawer {
+      position: absolute;
+      right: 0;
+      bottom: 160px;
+      background: rgba(15, 23, 42, 0.94);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1.5px solid rgba(244, 114, 182, 0.65);
+      border-radius: 24px;
+      padding: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      box-shadow: 0 8px 26px rgba(0, 0, 0, 0.65), 0 0 16px rgba(244, 114, 182, 0.3);
+      z-index: 25;
+      pointer-events: auto;
+      animation: popDrawer 0.15s ease-out;
+    }
+    .emote-picker-drawer.hidden {
+      display: none !important;
+    }
+    @keyframes popDrawer {
+      0% { opacity: 0; transform: scale(0.8) translateY(10px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .emote-pick-item {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+      transition: transform 0.1s ease, background 0.1s ease;
+    }
+    .emote-pick-item:active {
+      transform: scale(1.22);
+      background: rgba(244, 114, 182, 0.35);
     }
 
     /* Button B (LARI) - Cyan */
@@ -1254,18 +1352,25 @@
       </div>
     </div>
 
-    <!-- Skins Screen (Lemari Kostum) -->
+    <!-- Skins & Emotes Shop Screen -->
     <div id="screen-skins" class="overlay hidden">
       <div class="card" style="max-width: 530px; padding: 14px 20px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
-          <div class="title" style="margin-bottom: 0; font-size: 20px;">LEMARI KOSTUM</div>
+          <div class="title" style="margin-bottom: 0; font-size: 20px;">TOKO & KOLEKSI</div>
           <div style="background: rgba(0,0,0,0.55); border:1px solid var(--border); border-radius:4px; padding:3px 10px;">
             <span style="font-size:10px; color:var(--muted);">TOTAL KOIN:</span>
             <span id="skins-total-coins" style="font-size:14px; font-weight:bold; color:#facc15; margin-left:4px;">0</span> 💰
           </div>
         </div>
-        <div class="subtitle" style="margin-bottom: 8px; font-size: 11px;">Kumpulkan koin saat menjelajah dan pilih gaya karakter favoritmu!</div>
+        <div class="shop-tabs">
+          <button id="tab-shop-skins" class="shop-tab active" type="button">👕 KOSTUM</button>
+          <button id="tab-shop-emotes" class="shop-tab" type="button">💬 REAKSI & EMOTE</button>
+        </div>
+        <div class="subtitle" id="shop-subtitle" style="margin-bottom: 8px; font-size: 11px;">Kumpulkan koin saat menjelajah dan pilih gaya karakter favoritmu!</div>
         <div id="skins-container" class="skins-grid">
+          <!-- Dynamically generated -->
+        </div>
+        <div id="emotes-container" class="skins-grid hidden">
           <!-- Dynamically generated -->
         </div>
         <div class="btn-row" style="margin-top: 4px;">
@@ -1414,6 +1519,10 @@
 
       <!-- Right Action Cluster: Angled B (Lari) & A (Lompat) -->
       <div class="touch-action-cluster">
+        <!-- Quick Emote Trigger Button -->
+        <div id="t-emote-btn" class="touch-btn emote-trigger-btn" role="button" aria-label="Kirim Emote">💬</div>
+        <div id="emote-picker-drawer" class="emote-picker-drawer hidden"></div>
+
         <div id="t-run" class="touch-btn btn-b" role="button" aria-label="Lari (B)">
           <span class="btn-letter">B</span>
           <span class="btn-sub">LARI</span>
@@ -1490,6 +1599,7 @@
         TOTAL_COINS: 'oa_total_coins_v1',
         SKIN: 'oa_selected_skin_v1',
         UNLOCKED_SKINS: 'oa_unlocked_skins_v1',
+        UNLOCKED_EMOTES: 'oa_unlocked_emotes_v1',
         LEADERBOARD: 'oa_arcade_leaderboard_v1',
         PLAYER_NAME: 'oa_player_name_v1'
       }
@@ -1552,6 +1662,15 @@
       { id: 'retro', name: 'Virtual Guy', price: 150, desc: 'Sosok biru bergaya digital klasik', color: '#8bac0f' }
     ]);
 
+    const EMOTES_CATALOG = Object.freeze([
+      { id: 'laugh', icon: '😂', name: 'Tertawa', price: 0, desc: 'Tawa santai tanpa beban (Bawaan)' },
+      { id: 'cry', icon: '😭', name: 'Menangis', price: 25, desc: 'Apes saat jatuh ke jurang' },
+      { id: 'thumbsup', icon: '👍', name: 'Mantap', price: 40, desc: 'Jempol sportivitas & kompak' },
+      { id: 'fire', icon: '🔥', name: 'Membara', price: 60, desc: 'Semangat lari kencang' },
+      { id: 'panic', icon: '💀', name: 'Tengkorak', price: 80, desc: 'Panik dibidik Bos Titan' },
+      { id: 'crown', icon: '👑', name: 'Mahkota', price: 120, desc: 'Raja skor petualang' }
+    ]);
+
     /**
      * ============================================================================
      * 2. STORAGE MODULE (js/storage.js)
@@ -1566,6 +1685,7 @@
           [CONFIG.STORAGE_KEYS.TOTAL_COINS]: 0,
           [CONFIG.STORAGE_KEYS.SKIN]: 'scout',
           [CONFIG.STORAGE_KEYS.UNLOCKED_SKINS]: '["scout"]',
+          [CONFIG.STORAGE_KEYS.UNLOCKED_EMOTES]: '["laugh"]',
           [CONFIG.STORAGE_KEYS.PLAYER_NAME]: 'YOU',
           [CONFIG.STORAGE_KEYS.LEADERBOARD]: '[]'
         };
@@ -1674,6 +1794,30 @@
           this.memoryFallback[CONFIG.STORAGE_KEYS.UNLOCKED_SKINS] = serialized;
           try {
             localStorage.setItem(CONFIG.STORAGE_KEYS.UNLOCKED_SKINS, serialized);
+          } catch {}
+          return true;
+        }
+        return false;
+      }
+
+      getUnlockedEmotes() {
+        try {
+          const val = localStorage.getItem(CONFIG.STORAGE_KEYS.UNLOCKED_EMOTES);
+          const parsed = JSON.parse(val || this.memoryFallback[CONFIG.STORAGE_KEYS.UNLOCKED_EMOTES]);
+          return Array.isArray(parsed) && parsed.length > 0 ? parsed : ['laugh'];
+        } catch {
+          return ['laugh'];
+        }
+      }
+
+      unlockEmote(emoteId) {
+        const unlocked = this.getUnlockedEmotes();
+        if (!unlocked.includes(emoteId)) {
+          unlocked.push(emoteId);
+          const serialized = JSON.stringify(unlocked);
+          this.memoryFallback[CONFIG.STORAGE_KEYS.UNLOCKED_EMOTES] = serialized;
+          try {
+            localStorage.setItem(CONFIG.STORAGE_KEYS.UNLOCKED_EMOTES, serialized);
           } catch {}
           return true;
         }
@@ -1953,6 +2097,11 @@
         this.playTone(850, 1200, 0.04, 'triangle', 0.08);
       }
 
+      emote() {
+        this.playTone(523, 784, 0.10, 'triangle', 0.15);
+        setTimeout(() => this.playTone(784, 1046, 0.14, 'triangle', 0.15), 80);
+      }
+
       land() {
         this.playTone(130, 55, 0.06, 'sine', 0.06);
       }
@@ -1995,6 +2144,7 @@
         this.activePointers = new Map();
         this.onPauseToggle = null;
         this.onMuteToggle = null;
+        this.onEmoteTrigger = null;
         this.onAnyInteraction = null;
 
         this._bindKeyboard();
@@ -2049,6 +2199,12 @@
           }
           if (code === 'KeyM' && !e.repeat && this.onMuteToggle) {
             this.onMuteToggle();
+          }
+          if (code.startsWith('Digit') && !e.repeat && this.onEmoteTrigger) {
+            const digit = parseInt(code.replace('Digit', ''), 10);
+            if (digit >= 1 && digit <= 6) {
+              this.onEmoteTrigger(digit - 1);
+            }
           }
         });
 
@@ -2552,6 +2708,7 @@
         this.shieldTimer = 0;
         this.magnetTimer = 0;
         this.animTimer = 0;
+        this.activeEmote = null;
         this.state = 'idle'; // idle, walk, run, jump, fall, hurt
         this.skin = this.skin || 'scout';
         this.safeCheckpoint = { x, y };
@@ -2564,6 +2721,10 @@
         if (this.shieldTimer > 0) this.shieldTimer = Math.max(0, this.shieldTimer - dt);
         if (this.magnetTimer > 0) this.magnetTimer = Math.max(0, this.magnetTimer - dt);
         if (this.growTimer > 0) this.growTimer = Math.max(0, this.growTimer - dt);
+        if (this.activeEmote) {
+          this.activeEmote.timer -= dt;
+          if (this.activeEmote.timer <= 0) this.activeEmote = null;
+        }
 
         // Coyote Time & Jump Buffering
         if (this.onGround) {
@@ -2660,6 +2821,10 @@
         } else {
           this.state = 'idle';
         }
+      }
+
+      triggerEmote(icon) {
+        this.activeEmote = { icon, timer: 2.2, maxTimer: 2.2 };
       }
     }
 
@@ -2793,18 +2958,18 @@
 
       getSurfaceYAt(x, w = 0, defaultY = 380) {
         const segIdx = Math.floor(x / CONFIG.WORLD.SEGMENT_WIDTH);
-        let highestY = defaultY;
+        let foundY = null;
         for (let sIdx = segIdx - 1; sIdx <= segIdx + 1; sIdx++) {
-          const seg = this.segments.get(sIdx);
+          const seg = this.getOrCreateSegment(sIdx);
           if (!seg) continue;
           for (let i = 0; i < seg.platforms.length; i++) {
             const p = seg.platforms[i];
             if ((x + w >= p.x) && (x <= p.x + p.w)) {
-              if (p.y < highestY) highestY = p.y;
+              if (foundY === null || p.y < foundY) foundY = p.y;
             }
           }
         }
-        return highestY;
+        return foundY !== null ? foundY : defaultY;
       }
 
       _generateSegment(index) {
@@ -4137,22 +4302,27 @@
         if (T.complete && T.naturalWidth) {
           const tile = (n, dx, dy, tw = 18, th = 18) => ctx.drawImage(T, (n % 20) * 18, ((n / 20) | 0) * 18, tw, th, dx, dy, tw, th);
           if (type === 'ground') {
-            if (!this._groundPat) {
+            if (!this._dirtPat) {
               const cv = document.createElement('canvas');
-              cv.width = 32; cv.height = 126;
+              cv.width = 32; cv.height = 36;
               const c2 = cv.getContext('2d');
-              for (let r = 0; r < 7; r++) for (let c = 0; c < 2; c++) {
-                const n = r === 0 ? 23 : (r + c) % 2 ? 24 : 25;
-                // lebar 16 (bukan 18): 2px kanan tile Kenney adalah garis tepi yang jadi strip gelap saat diulang
+              for (let r = 0; r < 2; r++) for (let c = 0; c < 2; c++) {
+                const n = (r + c) % 2 ? 24 : 25;
                 c2.drawImage(T, (n % 20) * 18, ((n / 20) | 0) * 18, 16, 18, c * 16, r * 18, 16, 18);
               }
-              this._groundPat = ctx.createPattern(cv, 'repeat');
+              this._dirtPat = ctx.createPattern(cv, 'repeat');
             }
             ctx.save();
             ctx.translate(x, y);
-            ctx.fillStyle = this._groundPat;
+            ctx.fillStyle = this._dirtPat;
             ctx.fillRect(0, 0, w, h);
             ctx.restore();
+
+            // Lapisan rumput permukaan atas (tidak akan terulang di dalam tanah)
+            for (let bx = 0; bx < w; bx += 16) {
+              const tw = Math.min(16, w - bx);
+              ctx.drawImage(T, (22 % 20) * 18, ((22 / 20) | 0) * 18, tw, 18, x + bx, y, tw, 18);
+            }
 
             // Overlay border jurang (cliff edges)
             if (isLeftCliff) {
@@ -5046,6 +5216,9 @@
             if (player.shieldTimer > 0) {
               this._drawShieldBubble(ctx, x, y, player, time);
             }
+            if (player.activeEmote) {
+              this._drawPlayerEmote(ctx, x, y, player);
+            }
             return;
           }
         }
@@ -5368,6 +5541,60 @@
         if (player.shieldTimer > 0) {
           this._drawShieldBubble(ctx, x, y, player, time);
         }
+        if (player.activeEmote) {
+          this._drawPlayerEmote(ctx, x, y, player);
+        }
+      }
+
+      _drawPlayerEmote(ctx, x, y, player) {
+        if (!player.activeEmote || player.activeEmote.timer <= 0) return;
+        const em = player.activeEmote;
+        const progress = em.timer / em.maxTimer;
+        const alpha = Math.min(1, progress * 3.5);
+
+        const age = em.maxTimer - em.timer;
+        const scale = age < 0.15 ? (age / 0.15) * 1.15 : (age < 0.25 ? 1.15 - ((age - 0.15) / 0.1) * 0.15 : 1.0);
+
+        ctx.save();
+        ctx.globalAlpha = alpha;
+
+        const bx = Math.round(x + player.w / 2);
+        const by = Math.round(y - 28);
+
+        ctx.translate(bx, by);
+        ctx.scale(scale, scale);
+
+        // Balon ucapan
+        ctx.fillStyle = '#ffffff';
+        ctx.strokeStyle = '#0f172a';
+        ctx.lineWidth = 2;
+
+        ctx.beginPath();
+        ctx.roundRect(-16, -16, 32, 28, 8);
+        ctx.fill();
+        ctx.stroke();
+
+        // Ekor balon
+        ctx.beginPath();
+        ctx.moveTo(-4, 12);
+        ctx.lineTo(0, 18);
+        ctx.lineTo(4, 12);
+        ctx.closePath();
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(-4, 12);
+        ctx.lineTo(0, 18);
+        ctx.lineTo(4, 12);
+        ctx.stroke();
+
+        // Ikon Emoji
+        ctx.font = '16px "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(em.icon, 0, -2);
+
+        ctx.restore();
       }
 
       _drawShieldBubble(ctx, x, y, player, time) {
@@ -5592,6 +5819,62 @@
           }
         });
 
+        // Tab Toko: Kostum vs Reaksi/Emote
+        const tabSkins = document.getElementById('tab-shop-skins');
+        const tabEmotes = document.getElementById('tab-shop-emotes');
+        const skinsContainer = document.getElementById('skins-container');
+        const emotesContainer = document.getElementById('emotes-container');
+        const shopSubtitle = document.getElementById('shop-subtitle');
+
+        if (tabSkins && tabEmotes) {
+          tabSkins.addEventListener('click', () => {
+            tabSkins.classList.add('active');
+            tabEmotes.classList.remove('active');
+            if (skinsContainer) skinsContainer.classList.remove('hidden');
+            if (emotesContainer) emotesContainer.classList.add('hidden');
+            if (shopSubtitle) shopSubtitle.textContent = 'Kumpulkan koin saat menjelajah dan pilih gaya karakter favoritmu!';
+            this._renderSkinsUI();
+          });
+          tabEmotes.addEventListener('click', () => {
+            tabEmotes.classList.add('active');
+            tabSkins.classList.remove('active');
+            if (skinsContainer) skinsContainer.classList.add('hidden');
+            if (emotesContainer) emotesContainer.classList.remove('hidden');
+            if (shopSubtitle) shopSubtitle.textContent = 'Buka ekspresi & emote unik untuk berkomunikasi & bereaksi saat bermain!';
+            this._renderEmotesUI();
+          });
+        }
+
+        // Quick Emote Trigger (Mobile Touch)
+        const tEmoteBtn = document.getElementById('t-emote-btn');
+        const emoteDrawer = document.getElementById('emote-picker-drawer');
+        if (tEmoteBtn && emoteDrawer) {
+          tEmoteBtn.addEventListener('pointerdown', (e) => {
+            e.stopPropagation();
+            this.audio.init();
+            if (emoteDrawer.classList.contains('hidden')) {
+              this._renderEmotePickerDrawer();
+              emoteDrawer.classList.remove('hidden');
+            } else {
+              emoteDrawer.classList.add('hidden');
+            }
+          });
+          window.addEventListener('pointerdown', (e) => {
+            if (!emoteDrawer.contains(e.target) && e.target !== tEmoteBtn) {
+              emoteDrawer.classList.add('hidden');
+            }
+          });
+        }
+
+        // Shortcut Tombol Angka Keyboard 1-6 untuk Emote Cepat
+        this.input.onEmoteTrigger = (index) => {
+          const unlockedIds = this.storage.getUnlockedEmotes();
+          const unlockedCatalog = EMOTES_CATALOG.filter(e => unlockedIds.includes(e.id));
+          if (unlockedCatalog[index]) {
+            this.triggerPlayerEmote(unlockedCatalog[index].icon);
+          }
+        };
+
         this._syncMuteIcon();
         this._updateStartMenuHero();
         document.getElementById('start-high').textContent = this.scoring.highScore;
@@ -5607,7 +5890,43 @@
         }
       }
 
+      triggerPlayerEmote(icon) {
+        if (!this.player) return;
+        this.player.triggerEmote(icon);
+        this.audio.emote();
+      }
+
+      _renderEmotePickerDrawer() {
+        const drawer = document.getElementById('emote-picker-drawer');
+        if (!drawer) return;
+        drawer.innerHTML = '';
+        const unlockedIds = this.storage.getUnlockedEmotes();
+        const unlockedCatalog = EMOTES_CATALOG.filter(e => unlockedIds.includes(e.id));
+        unlockedCatalog.forEach(em => {
+          const item = document.createElement('div');
+          item.className = 'emote-pick-item';
+          item.textContent = em.icon;
+          item.title = em.name;
+          item.addEventListener('pointerdown', (e) => {
+            e.stopPropagation();
+            this.triggerPlayerEmote(em.icon);
+            drawer.classList.add('hidden');
+          });
+          drawer.appendChild(item);
+        });
+      }
+
       _openSkinsModal() {
+        const tabSkins = document.getElementById('tab-shop-skins');
+        const tabEmotes = document.getElementById('tab-shop-emotes');
+        const skinsContainer = document.getElementById('skins-container');
+        const emotesContainer = document.getElementById('emotes-container');
+        if (tabSkins && tabEmotes && skinsContainer && emotesContainer) {
+          tabSkins.classList.add('active');
+          tabEmotes.classList.remove('active');
+          skinsContainer.classList.remove('hidden');
+          emotesContainer.classList.add('hidden');
+        }
         this._renderSkinsUI();
         document.getElementById('screen-skins').classList.remove('hidden');
       }
@@ -5675,6 +5994,66 @@
               this.audio.coin(true);
               this._updateStartMenuHero();
               this._renderSkinsUI();
+            } else {
+              this.audio.damage();
+            }
+          });
+        });
+      }
+
+      _renderEmotesUI() {
+        const totalCoins = this.storage.getTotalCoins();
+        const totalCoinsEl = document.getElementById('skins-total-coins');
+        if (totalCoinsEl) totalCoinsEl.textContent = totalCoins;
+        const container = document.getElementById('emotes-container');
+        if (!container) return;
+        container.innerHTML = '';
+
+        const unlockedEmotes = this.storage.getUnlockedEmotes();
+
+        for (const em of EMOTES_CATALOG) {
+          const isUnlocked = unlockedEmotes.includes(em.id);
+          const card = document.createElement('div');
+          card.className = `skin-card ${isUnlocked ? 'selected' : ''}`;
+          
+          let actionHtml = '';
+          if (isUnlocked) {
+            actionHtml = `<button class="skin-btn btn-active btn-preview-emote" data-icon="${em.icon}" style="background:rgba(34,197,94,0.18); border-color:#22c55e; color:#22c55e; width:100%; cursor:pointer;">TEST 💬</button>`;
+          } else {
+            const canAfford = totalCoins >= em.price;
+            actionHtml = `<button class="skin-btn btn-buy btn-buy-emote" data-emote="${em.id}" data-price="${em.price}" ${canAfford ? '' : 'style="opacity:0.5;"'} style="background:rgba(234,179,8,0.2); border-color:#eab308; color:#facc15; width:100%;">BUKA (${em.price} 💰)</button>`;
+          }
+
+          card.innerHTML = `
+            <div style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.3);border-radius:4px;flex-shrink:0;font-size:22px;">
+              ${em.icon}
+            </div>
+            <div style="flex:1;min-width:0;">
+              <div class="name" style="color:#f472b6;">${em.name}</div>
+              <div class="desc">${em.desc}</div>
+              <div>${actionHtml}</div>
+            </div>
+          `;
+          container.appendChild(card);
+        }
+
+        container.querySelectorAll('.btn-preview-emote').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const icon = e.currentTarget.getAttribute('data-icon');
+            this.triggerPlayerEmote(icon);
+          });
+        });
+
+        container.querySelectorAll('.btn-buy-emote').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const emoteId = e.currentTarget.getAttribute('data-emote');
+            const price = parseInt(e.currentTarget.getAttribute('data-price'), 10);
+            if (this.storage.spendTotalCoins(price)) {
+              this.storage.unlockEmote(emoteId);
+              const em = EMOTES_CATALOG.find(x => x.id === emoteId);
+              if (em) this.triggerPlayerEmote(em.icon);
+              this.audio.coin(true);
+              this._renderEmotesUI();
             } else {
               this.audio.damage();
             }
