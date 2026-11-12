@@ -3801,9 +3801,10 @@
         this.peers = new Map();
         this.topic = 'balongbesuk/offline-adventure/global/v1';
         this.sendTimer = 0;
-        this.sendInterval = 0.10; // 10 fps sync (ringan & hemat data)
+        this.sendInterval = 0.125; // 8 fps sync (optimal & hemat data)
         this.statusText = 'OFFLINE';
         this.reconnectTimer = null;
+        window.addEventListener('beforeunload', () => this.leave());
       }
 
       connect() {
@@ -3816,7 +3817,7 @@
         if (this.client && this.connected) return;
 
         try {
-          const clientId = 'oa_' + this.myId;
+          const clientId = 'oa_' + this.myId + '_' + Date.now().toString(36);
           this.client = new Paho.MQTT.Client('broker.emqx.io', 8084, '/mqtt', clientId);
 
           this.client.onConnectionLost = () => {
@@ -3892,11 +3893,12 @@
         }
 
         const now = performance.now();
+        const cleanName = String(data.n || 'HERO').trim().substring(0, 12).replace(/[^A-Za-z0-9_]/g, '') || 'HERO';
         let peer = this.peers.get(data.id);
         if (!peer) {
           peer = {
             id: data.id,
-            name: data.n || 'HERO',
+            name: cleanName,
             skin: data.s || 'scout',
             x: data.x,
             y: data.y,
@@ -3912,7 +3914,7 @@
           };
           this.peers.set(data.id, peer);
         } else {
-          peer.name = data.n || peer.name;
+          peer.name = cleanName;
           peer.skin = data.s || peer.skin;
           peer.targetX = data.x;
           peer.targetY = data.y;
@@ -4053,8 +4055,9 @@
           const rank = idx + 1;
           const crown = rank === 1 ? '👑 ' : '';
           const style = p.isMe ? 'color: #38bdf8; font-weight: bold;' : 'color: #e2e8f0;';
+          const safeName = String(p.name).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
           return `<div style="display:flex; justify-content:space-between; margin-bottom:2px; ${style}">
-            <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:85px;">${crown}${rank}. ${p.name}</span>
+            <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:85px;">${crown}${rank}. ${safeName}</span>
             <span style="color:#facc15; margin-left:6px; font-weight:bold;">${p.score.toLocaleString()}</span>
           </div>`;
         }).join('');
@@ -6612,6 +6615,10 @@
       }
 
       startNewGame() {
+        if (this.mp) {
+          if (!this.mp.connected) this.mp.connect();
+          else this.mp.broadcastState();
+        }
         const seed = Math.floor(Date.now() % 1000000);
         this.world.reset(seed);
         this.scoring.reset();
