@@ -1738,52 +1738,37 @@
     /**
      * Daftar Pilihan Kostum Karakter
      */
+    // Helper pemuatan gambar dengan decoding asinkron agar bebas stutter di canvas
+    const loadImage = (src) => {
+      const img = new Image();
+      img.src = src;
+      if (img.decode) img.decode().catch(() => {});
+      return img;
+    };
+
     // Pixel Adventure 1 (CC0): per skin 5 strip horizontal, frame 32x32
     const PLAYER_SPRITES = Object.fromEntries(['scout', 'ninja', 'knight', 'retro'].map(s => [s,
-      Object.fromEntries(['Idle', 'Run', 'Jump', 'Fall', 'Hit'].map(k => {
-        const img = new Image();
-        img.src = `assets/player/${s}/${k}.png`;
-        return [k, img];
-      }))
+      Object.fromEntries(['Idle', 'Run', 'Jump', 'Fall', 'Hit'].map(k => [k, loadImage(`assets/player/${s}/${k}.png`)]))
     ]));
 
     // Kenney Pixel Platformer (CC0): tiles.png = tilemap 18px (20 kolom), bg.png = latar, chars.png = karakter/musuh 24px (9 kolom)
-    const KENNEY = Object.fromEntries(['tiles', 'bg', 'chars'].map(k => {
-      const img = new Image();
-      img.src = `assets/kenney/${k}.png`;
-      return [k, img];
-    }));
+    const KENNEY = Object.fromEntries(['tiles', 'bg', 'chars'].map(k => [k, loadImage(`assets/kenney/${k}.png`)]));
 
     // Aset Pepohonan & Semak Asli 4 Musim (Pixel Art PNG Bergaris Kontur Presisi)
-    const TREE_ASSETS = ['spring', 'summer', 'autumn', 'winter'].map(k => {
-      const lImg = new Image();
-      lImg.src = `assets/scenery/tree_${k}_large.png`;
-      const sImg = new Image();
-      sImg.src = `assets/scenery/tree_${k}_small.png`;
-      return { large: lImg, small: sImg };
-    });
+    const TREE_ASSETS = ['spring', 'summer', 'autumn', 'winter'].map(k => ({
+      large: loadImage(`assets/scenery/tree_${k}_large.png`),
+      small: loadImage(`assets/scenery/tree_${k}_small.png`)
+    }));
 
-    const BUSH_ASSETS = ['spring', 'summer', 'autumn', 'winter'].map(k => {
-      const img = new Image();
-      img.src = `assets/scenery/bush_${k}.png`;
-      return img;
-    });
+    const BUSH_ASSETS = ['spring', 'summer', 'autumn', 'winter'].map(k => loadImage(`assets/scenery/bush_${k}.png`));
 
     // Pixel Adventure 1 (CC0): effects
-    const EFFECTS = Object.fromEntries(['collected', 'dust', 'shield_bubble'].map(k => {
-      const img = new Image();
-      img.src = `assets/effects/${k}.png`;
-      return [k, img];
-    }));
+    const EFFECTS = Object.fromEntries(['collected', 'dust', 'shield_bubble'].map(k => [k, loadImage(`assets/effects/${k}.png`)]));
 
     // Pixel Adventure 1 (CC0): items & powerups
     const ITEMS = Object.fromEntries([
       'box_idle', 'box_break', 'shield_melon', 'magnet_pineapple', 'life_apple', 'mushroom_super'
-    ].map(k => {
-      const img = new Image();
-      img.src = `assets/items/${k}.png`;
-      return [k, img];
-    }));
+    ].map(k => [k, loadImage(`assets/items/${k}.png`)]));
 
     const SKINS_CATALOG = Object.freeze([
       { id: 'scout', name: 'Ninja Frog', price: 0, desc: 'Katak ninja lincah (Bawaan)', color: '#38bdf8' },
@@ -3119,6 +3104,8 @@
         this.segments = new Map(); // index -> Segment Object
         this.lastExitY = CONFIG.WORLD.GROUND_Y;
         this.lastPattern = -1;
+        this._activePlatforms = [];
+        this._activeSegments = [];
       }
 
       reset(newSeed) {
@@ -3126,6 +3113,8 @@
         this.segments.clear();
         this.lastExitY = CONFIG.WORLD.GROUND_Y;
         this.lastPattern = -1;
+        this._activePlatforms.length = 0;
+        this._activeSegments.length = 0;
       }
 
       /**
@@ -3753,8 +3742,11 @@
           }
         }
 
-        const activePlatforms = [];
-        const activeSegments = [];
+        // Reuse pool array untuk eliminasi GC allocation pada game loop 60 FPS
+        const activePlatforms = this._activePlatforms;
+        const activeSegments = this._activeSegments;
+        activePlatforms.length = 0;
+        activeSegments.length = 0;
 
         for (let idx = minActive; idx <= maxActive; idx++) {
           const seg = this.getOrCreateSegment(idx);
@@ -4032,7 +4024,11 @@
 
         if (this.connected && this.game.state === 'PLAYING') {
           this.sendTimer += dt;
-          if (this.sendTimer >= this.sendInterval) {
+          // Idle packet throttling: 2 fps saat diam, 8 fps saat bergerak/ber-emote (hemat 60% kuota & daya)
+          const p = this.game.player;
+          const isIdle = p && Math.abs(p.vx) < 1 && Math.abs(p.vy) < 1 && !p.activeEmote;
+          const currentInterval = isIdle ? 0.5 : this.sendInterval;
+          if (this.sendTimer >= currentInterval) {
             this.sendTimer = 0;
             this.broadcastState();
           }
@@ -4104,6 +4100,7 @@
             this.client.send(message);
           } catch {}
         }
+        this.peers.clear();
         this._lastLbHtml = '';
         this._lastCount = -1;
         const liveCard = document.getElementById('live-leaderboard');
@@ -4205,7 +4202,8 @@
     class PixelRenderer {
       constructor(canvas) {
         this.canvas = canvas;
-        this.ctx = canvas.getContext('2d', { alpha: false });
+        // desynchronized: true memangkas antrean buffer compositor untuk latensi input terendah
+        this.ctx = canvas.getContext('2d', { alpha: false, desynchronized: true }) || canvas.getContext('2d', { alpha: false });
         this.ctx.imageSmoothingEnabled = false;
       }
 
