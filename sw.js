@@ -1,8 +1,22 @@
-const CACHE_VERSION = 'offline-adventure-v2.9.5';
+const CACHE_VERSION = 'offline-adventure-v3.1.0';
 const PRECACHE_ASSETS = [
   './',
   './index.html',
   './manifest.webmanifest',
+  './css/style.css',
+  './js/config.js',
+  './js/storage.js',
+  './js/audio.js',
+  './js/input.js',
+  './js/collision.js',
+  './js/entities.js',
+  './js/camera.js',
+  './js/world.js',
+  './js/scoring.js',
+  './js/multiplayer.js',
+  './js/renderer.js',
+  './js/game.js',
+  './js/main.js',
   './js/paho-mqtt.min.js',
   './icon.svg',
   './icon-192.png',
